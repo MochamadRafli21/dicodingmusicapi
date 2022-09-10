@@ -14,9 +14,9 @@ class SongsHandler {
    async postSongHandler(request, h) {
         try {
           await this._validator.validateSongPayload(request.payload);
-          const { title, year, genre, performer, albumid, duration } = request.payload;
+          const { title, year, genre, performer, albumId, duration } = request.payload;
      
-          const songId = await this._service.addSong({ title, year, genre, performer, albumid, duration });
+          const songId = await this._service.addSong({ title, year, genre, performer, albumId, duration });
      
           const response = h.response({
             status: 'success',
@@ -43,13 +43,13 @@ class SongsHandler {
             message: 'Maaf, terjadi kegagalan pada server kami.',
           });
           response.code(500);
-          console.error(error);
           return response;
         }
       }
      
-      async getSongsHandler() {
-        const songs = await this._service.getSongs();
+      async getSongsHandler(request) {
+        const { title, performer } = request.query;
+        const songs = await this._service.getSongs(title, performer);
         return {
           status: 'success',
           data: {
@@ -84,7 +84,6 @@ class SongsHandler {
             message: 'Maaf, terjadi kegagalan pada server kami.',
           });
           response.code(500);
-          console.error(error);
           return response;
         }
       }
@@ -92,10 +91,10 @@ class SongsHandler {
       async putSongByIdHandler(request, h) {
         try {
           await this._validator.validateSongPayload(request.payload);
-          const { title, year, genre, performer, albumid, duration } = request.payload;
+          const { title, year, genre, performer, albumId, duration } = request.payload;
           const { id } = request.params;
      
-          await this._service.editSongById(id, {title, year, genre, performer, albumid, duration});
+          await this._service.editSongById(id, {title, year, genre, performer, albumId, duration});
      
           return {
             status: 'success',
@@ -117,7 +116,6 @@ class SongsHandler {
             message: 'Maaf, terjadi kegagalan pada server kami.',
             });
             response.code(500);
-            console.error(error);
             return response;
         }
       }
@@ -147,7 +145,6 @@ class SongsHandler {
             message: 'Maaf, terjadi kegagalan pada server kami.',
           });
           response.code(500);
-          console.error(error);
           return response;
         }
       }

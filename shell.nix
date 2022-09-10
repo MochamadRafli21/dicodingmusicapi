@@ -11,6 +11,8 @@ pkgs.mkShell {
   echo "Setting up .env"
   rm .env
   touch .env
+  echo "HOST=localhost" >> .env
+  echo "PORT=5000" >> .env
   echo "PGUSER=postgres" >> .env
   echo "PGPASSWORD=root" >> .env
   echo "PGDATABASE=openmusic" >> .env

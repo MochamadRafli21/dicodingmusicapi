@@ -3,6 +3,7 @@ const { nanoid } = require('nanoid');
 const InvariantError = require('../../api/exceptions/InvariantError');
 const NotFoundError = require('../../api/exceptions/NotFoundError');
 const { mapDBToSongModel, mapDBToSongModelForList } = require('../../utils');
+const { boolean, bool } = require('joi');
 
  
 class SongsService {
@@ -10,14 +11,14 @@ class SongsService {
     this._pool = new Pool();
   }
 
-  async addSong({ title, year, genre, performer, albumid, duration }) {
+  async addSong({ title, year, genre, performer, albumId, duration }) {
     const id = nanoid(16);
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
 
     const query = {
         text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $7, $6, $8, $9) RETURNING id',
-        values: [id, title, year, genre, performer, albumid, duration, createdAt, updatedAt],
+        values: [id, title, year, genre, performer, albumId, duration, createdAt, updatedAt],
     };
 
     const result = await this._pool.query(query);
@@ -29,8 +30,38 @@ class SongsService {
     return result.rows[0].id;
   }
 
-  async getSongs() {
-    const result = await this._pool.query('SELECT * FROM songs');
+  async getSongs(title, performer) {
+    let query = 'SELECT * FROM songs'
+    let values = []
+    if(title){
+      title = `%${title}%`
+      values.push(title)
+      let queryt = `lower(title) LIKE lower(\$${values.length})`
+      if (values.length > 1){
+        queryt = ` AND `+ queryt
+      } else {
+        queryt = ` WHERE `+ queryt
+      }
+      query += queryt
+    }
+    if(performer){
+      performer = `%${performer}%`
+      values.push(performer)
+      let queryp = `lower(performer) LIKE lower(\$${values.length})`
+      if (values.length > 1){
+        queryp = ` AND `+ queryp
+      } else {
+        queryp = ` WHERE `+ queryp
+      }
+      query += queryp
+    }
+    if (values.length >= 1){
+      query = {
+        text: query,
+        values: values
+      }
+    }
+    const result = await this._pool.query(query);
     return result.rows.map(mapDBToSongModelForList);
   }
 
@@ -81,7 +112,6 @@ class SongsService {
     const result = await this._pool.query(query);
  
     if (!result.rows.length) {
-      console.log("test")
       throw new NotFoundError('Lagu gagal dihapus. Id tidak ditemukan');
     }
   }
