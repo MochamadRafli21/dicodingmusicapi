@@ -4,11 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prod": "NODE_ENV=production node ./src/server.js",
+    "dev": "nodemon ./src/server.js",
+    "migrate": "node-pg-migrate",
+    "lint": "eslint ./src"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@hapi/hapi": "^20.2.2"
+    "@hapi/hapi": "^20.2.2",
+    "dotenv": "^16.0.2",
+    "joi": "^17.6.0",
+    "nanoid": "^3.3.4",
+    "node-pg-migrate": "^6.2.2",
+    "nodemon": "^2.0.19",
+    "pg": "^8.8.0"
   }
 }
