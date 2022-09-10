@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
-const InvariantError = require('../../api/albums/exceptions/InvariantError');
-const NotFoundError = require('../../api/albums/exceptions/NotFoundError');
+const InvariantError = require('../../api/exceptions/InvariantError');
+const NotFoundError = require('../../api/exceptions/NotFoundError');
 const { mapDBToModel } = require('../../utils');
 
  
