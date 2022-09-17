@@ -43,7 +43,7 @@ const init = async () => {
             plugin: users,
             options:{
                 UserService: userService,
-                userValidator: userValidator,
+                userValidator: UserValidator,
             }
         }
     ]);
