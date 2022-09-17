@@ -12,11 +12,17 @@ const users = require('./api/users');
 const UserService = require('./services/postgres/UserService')
 const UserValidator = require('./validator/users')
 const ClientError = require('./api/exceptions/ClientError');
-const { options } = require('joi');
+// AUTHENTICATION
+const authentications = require('./api/authentications');
+const AuthenticationsService = require('./services/postgres/AuthenticationService');
+const TokenManager = require('./tokenize/TokenManager');
+const AuthenticationsValidator = require('./validator/authentications');
+
 require('dotenv').config();
 
 const init = async () => {
     const userService = new UserService();
+    const authService = new AuthenticationsService();
     const albumsService = new AlbumsService();
     const songsService = new SongsService();
 
@@ -44,6 +50,15 @@ const init = async () => {
             options:{
                 UserService: userService,
                 userValidator: UserValidator,
+            }
+        },
+        {
+            plugin: authentications,
+            options: {
+                authenticationsService: authService,
+                usersService: userService,
+                tokenManager: TokenManager,
+                validator: AuthenticationsValidator,
             }
         }
     ]);

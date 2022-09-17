@@ -2,6 +2,7 @@ const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
 const bcrypt = require('bcrypt')
 const InvariantError = require('../../api/exceptions/InvariantError');
+const AuthenticationError = require('../../api/exceptions/AuthenticationsError');
 
  
 class UserService {
@@ -14,10 +15,10 @@ class UserService {
       await this.verifyUsername(username)
       // bila verifikasi berhasil maka buat user baru
       const id = `user-${nanoid(16)}`;
-      const hashPassword = bcrypt.hash(password, 10)
+      const hashPassword = await bcrypt.hash(password, 10)
 
     const query = {
-        text: 'INSERT INTO users VALUES($1, $2, $3, $4) RETURNING id',
+        text: 'INSERT INTO users VALUES($1, $2, $3, $4) RETURNING id, password',
         values: [id, username, hashPassword, fullname],
     };
 
@@ -41,6 +42,32 @@ class UserService {
         throw new InvariantError('Gagal menambahkan user. Username telah digunakan.')
       }  
     }
+  
+  async verifyUserCredentials(username, password){
+
+    const query = {
+      text: "SELECT id, password FROM users WHERE lower(username) = lower($1)",
+      values: [username]
+    }
+
+    
+    const result = await this._pool.query(query)
+    console.log(result)
+    
+    if(!result.rowCount){
+      throw new AuthenticationError("Username atau password salah!")
+    }
+
+    const {id, password:hashPassword} = result.rows[0];
+    const match = await bcrypt.compare(password, hashPassword)
+
+    if(!match){
+      throw new AuthenticationError("Username atau password salah!")
+    }
+
+    return id;
+    
+  }
 
 }
 
