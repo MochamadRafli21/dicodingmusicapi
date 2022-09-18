@@ -90,19 +90,6 @@ class PlaylistSongsService {
       throw new NotFoundError('lagu gagal dihapus dari playlist. Id tidak ditemukan');
     }
   }
-
-  async verifyPlaylistSongs(playlist_id, songs_id){
-    const query = {
-        text: 'SELECT * FROM playlist_songs WHERE playlist_id = $1 AND songs_id = $2 RETURNING id',
-        values: [playlist_id,songs_id],
-      };
-   
-      const result = await this._pool.query(query);
-   
-      if (!result.rowCount) {
-        throw new NotFoundError('lagu tidak ditemukan di playlist. Id tidak ditemukan');
-      }
-  }
 }
 
 module.exports = PlaylistSongsService;

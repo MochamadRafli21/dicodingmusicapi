@@ -7,8 +7,24 @@ const {mapDBToModelPlaylist} = require('../../utils')
 
  
 class PlaylistService {
-  constructor() {
+  constructor(collaborationService) {
     this._pool = new Pool();
+    this._collaborationService = collaborationService;
+  }
+
+  async verifyPlaylistAccess(id, user_id){
+    try {
+      await this.verifyPlaylistOwner(id, user_id);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this._collaborationService.verifyCollaborations(id, user_id);
+      } catch {
+        throw error;
+      }
+    }
   }
 
   async verifyPlaylistOwner(id, owner){
@@ -45,27 +61,13 @@ class PlaylistService {
 
   async getPlaylists(owner) {
     const query = {
-        text:'SELECT id,name,owner FROM playlist WHERE owner = $1',
+        text:'SELECT playlist.*, users.username FROM playlist LEFT JOIN users on users.id = playlist.owner LEFT JOIN collaborations ON collaborations.playlist_id = playlist.id WHERE playlist.owner = $1 OR collaborations.user_id = $1',
         values:[owner]
     }
 
     const result = await this._pool.query(query);
 
-    const userQ = {
-      text:'SELECT username FROM users WHERE id = $1',
-      values:[owner]
-    }
-
-    const result2 = await this._pool.query(userQ);
     let final = result.rows.map(mapDBToModelPlaylist)
-    final = final.map(res => {
-      return {
-        id:res.id,
-        name: res.name,
-        username: result2.rows[0].username
-      }
-      })
-  
 
     return final;
   }

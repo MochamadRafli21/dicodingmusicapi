@@ -45,11 +45,11 @@ const mapDBToSongModel = ({
   const mapDBToModelPlaylist = ({
     id,
     name,
-    owner
+    username
   }) => ({
     id,
     name,
-    username: owner
+    username
   })
 
   module.exports = { 
