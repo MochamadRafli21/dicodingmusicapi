@@ -5,11 +5,13 @@ const NotFoundError = require('../../api/exceptions/NotFoundError');
 const {mapDBToModelPlaylist, mapDBToSongModelForList} = require('../../utils')
 
 class PlaylistSongsService {
-  constructor() {
+  constructor(playlistLogService) {
     this._pool = new Pool();
+    this._playlistLogService = playlistLogService;
+
   }
 
-  async addPlaylistSongs(playlist_id, songs_id ) {
+  async addPlaylistSongs(playlist_id, songs_id, user_id) {
     const id = nanoid(16);
 
     const query = {
@@ -22,6 +24,8 @@ class PlaylistSongsService {
     if (!result.rows[0].id) {
         throw new InvariantError('Lagu gagal ditambahkan ke playlist');
       }
+    
+    await this._playlistLogService.addPlaylistLog(playlist_id, songs_id, user_id, "add");
   
     return result.rows[0].id;
   }
@@ -73,12 +77,13 @@ class PlaylistSongsService {
           username: resultU.rows[0].username,
           songs: songs
         }
-    })  
+    })
+  
     return final[0];
  
   }
 
-  async deletePlaylistSongs(playlist_id, songs_id) {
+  async deletePlaylistSongs(playlist_id, songs_id, user_id) {
     const query = {
       text: 'DELETE FROM playlist_songs WHERE playlist_id = $1 AND songs_id = $2 RETURNING id',
       values: [playlist_id,songs_id],
@@ -89,6 +94,8 @@ class PlaylistSongsService {
     if (!result.rowCount) {
       throw new NotFoundError('lagu gagal dihapus dari playlist. Id tidak ditemukan');
     }
+
+    await this._playlistLogService.addPlaylistLog(playlist_id, songs_id, user_id, "delete");
   }
 }
 
