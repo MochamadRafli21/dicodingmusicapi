@@ -52,7 +52,6 @@ class UserService {
 
     
     const result = await this._pool.query(query)
-    console.log(result)
     
     if(!result.rowCount){
       throw new AuthenticationError("Username atau password salah!")

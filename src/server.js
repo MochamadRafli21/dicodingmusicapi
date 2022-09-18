@@ -1,4 +1,5 @@
 const Hapi = require('@hapi/hapi');
+const Jwt = require('@hapi/jwt')
 // ALBUMS
 const albums = require('./api/albums');
 const AlbumsService = require('./services/postgres/AlbumsService')
@@ -17,6 +18,10 @@ const authentications = require('./api/authentications');
 const AuthenticationsService = require('./services/postgres/AuthenticationService');
 const TokenManager = require('./tokenize/TokenManager');
 const AuthenticationsValidator = require('./validator/authentications');
+// PLAYLIST
+const PlaylistService = require('./services/postgres/PlaylistService');
+const playlist = require('./api/playlist');
+const PlaylistValidator = require('./validator/playlist');
 
 require('dotenv').config();
 
@@ -25,11 +30,30 @@ const init = async () => {
     const authService = new AuthenticationsService();
     const albumsService = new AlbumsService();
     const songsService = new SongsService();
+    const playlistService = new PlaylistService();
 
     const server = Hapi.server({
         port: process.env.PORT,
         host: process.env.HOST,
     });
+
+    await server.register(Jwt);
+
+    server.auth.strategy('jwt', 'jwt', {
+        keys: process.env.ACCESS_TOKEN_KEY,
+        verify: {
+          aud: false,
+          iss: false,
+          sub: false,
+          maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+        },
+        validate: (artifacts) => ({
+          isValid: true,
+          credentials: {
+            id: artifacts.decoded.payload.id,
+          },
+        }),
+      });
 
     await server.register([{
         plugin: albums,
@@ -59,6 +83,13 @@ const init = async () => {
                 usersService: userService,
                 tokenManager: TokenManager,
                 validator: AuthenticationsValidator,
+            }
+        },
+        {
+            plugin: playlist,
+            options:{
+                PlaylistService: playlistService,
+                validator: PlaylistValidator
             }
         }
     ]);
