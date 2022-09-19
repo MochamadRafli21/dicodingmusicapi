@@ -8,6 +8,12 @@ const mapDBToModel = ({
     year
   });
 
+const mapDBToModelAlbumsView = ({
+
+}) => ({
+  
+})
+
 // songs
 const mapDBToSongModel = ({ 
     id,

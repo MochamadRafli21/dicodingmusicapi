@@ -3,7 +3,6 @@ const { nanoid } = require('nanoid');
 const InvariantError = require('../../api/exceptions/InvariantError');
 const NotFoundError = require('../../api/exceptions/NotFoundError');
 const { mapDBToSongModel, mapDBToSongModelForList } = require('../../utils');
-const { boolean, bool } = require('joi');
 
  
 class SongsService {

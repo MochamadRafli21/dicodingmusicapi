@@ -31,56 +31,21 @@ class PlaylistSongsService {
   }
 
   async getPlaylistSongs(playlist_id) {
-    const queryP = {
-        text: 'SELECT * FROM playlist WHERE id = $1',
-        values: [playlist_id]
+    const query = {
+      text: 'SELECT playlist_songs.*, playlist.name, users.username, songs.title, songs.performer FROM playlist_songs LEFT JOIN playlist ON playlist.id = playlist_songs.playlist_id LEFT JOIN songs ON songs.id = playlist_songs.songs_id LEFT JOIN users ON users.id = playlist.owner WHERE playlist_songs.playlist_id = $1',
+      values: [playlist_id]
     }
+    const result = await this._pool.query(query)
 
-    const resultP = await this._pool.query(queryP)
-
-    if (!resultP.rowCount) {
+    if (!result.rowCount) {
         throw new NotFoundError('playlist. Id tidak ditemukan');
       }
-    const owner = resultP.rows[0].owner
-    const userQ = {
-    text:'SELECT username FROM users WHERE id = $1',
-    values:[owner]
-    }
-  
-    const resultU = await this._pool.query(userQ);
-    let final = resultP.rows.map(mapDBToModelPlaylist)
+
+    let playlist = result.rows.map(mapDBToModelPlaylist)[0];
+    let songs = result.rows.map(mapDBToSongModelForList);
+    playlist["songs"] = songs;
     
-    const query = {
-      text: 'SELECT * FROM playlist_songs WHERE playlist_id = $1',
-      values: [playlist_id],
-    };
- 
-    const result = await this._pool.query(query);
-
-  let songs = []
-  for(let i = 0; i < result.rowCount; i++){
-    const res = result.rows[i]
-      const queryS = {
-          text: 'SELECT * FROM songs WHERE id = $1',
-          values: [res.songs_id]
-      }
-
-      const resultS = await this._pool.query(queryS)
-
-      songs.push(resultS.rows.map(mapDBToSongModelForList)[0]) 
-  }
-
-    final = final.map(res => {
-        return {
-          id:res.id,
-          name: res.name,
-          username: resultU.rows[0].username,
-          songs: songs
-        }
-    })
-  
-    return final[0];
- 
+    return playlist;
   }
 
   async deletePlaylistSongs(playlist_id, songs_id, user_id) {

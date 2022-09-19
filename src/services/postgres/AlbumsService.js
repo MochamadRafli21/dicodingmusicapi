@@ -36,23 +36,18 @@ class AlbumsService {
 
   async getAlbumById(id) {
     const query = {
-      text: 'SELECT * FROM albums WHERE id = $1',
-      values: [id],
-    };
-
-    const songsQuery = {
-      text: 'SELECT * FROM songs WHERE albumid = $1',
-      values:[id]
+      text: 'SELECT songs.*, albums.* FROM albums LEFT JOIN songs ON albums.id = songs.albumid WHERE albums.id = $1',
+      values: [id]
     }
-    const songsresult = await this._pool.query(songsQuery)
-    const result = await this._pool.query(query);
-    
+
+    const result = await this._pool.query(query)
+
     if (result.rowCount < 1) {
       throw new NotFoundError('Album tidak ditemukan');
     }
     
     let albumRes = result.rows.map(mapDBToModel)[0];
-    let songs = songsresult.rows.map(mapDBToSongModelForList);
+    let songs = result.rows.map(mapDBToSongModelForList);
     albumRes["songs"] = songs;
     
     return albumRes;
