@@ -14,6 +14,7 @@ class ExportHandler {
             this._validator.validateExportsSongPlaylistPayload(request.payload);
             const message = {
                 userId : request.auth.credentials.id,
+                playlistId: playlistId,
                 targetEmail: request.payload.targetEmail
             }
             await this._playlistService.verifyPlaylistOwner(playlistId, message.userId);
@@ -23,7 +24,7 @@ class ExportHandler {
 
             const response = h.response({
                 status: 'success',
-                message: 'Lagu berhasil di eksport',
+                message: 'Permintaan Anda sedang kami proses',
               });
               response.code(201);
               return response;
