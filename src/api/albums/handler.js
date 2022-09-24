@@ -1,5 +1,3 @@
-const ClientError = require('../exceptions/ClientError');
-
 class AlbumsHandler {
     constructor(AlbumsService, albumValidator) {
       this._service = AlbumsService;
