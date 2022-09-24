@@ -1,5 +1,3 @@
-const ClientError = require('../exceptions/ClientError');
-
 class PlaylistSongsHandler {
     constructor(playlistSongsService, playlistService, songsService, validator) {
       this._service = playlistSongsService;
@@ -12,7 +10,6 @@ class PlaylistSongsHandler {
       this.deletePlaylistSongsHandler = this.deletePlaylistSongsHandler.bind(this);
     }
    async postPlaylistSongsHandler(request, h) {
-        try {
             this._validator.validatePlaylistSongsPayload(request.payload);
             const { id:playlistId } = request.params;
             const { songId } = request.payload;
@@ -32,28 +29,9 @@ class PlaylistSongsHandler {
               });
               response.code(201);
               return response;
-
-        } catch (error) {
-          if (error instanceof ClientError) {
-            const response = h.response({
-              status: 'fail',
-              message: error.message,
-            });
-            response.code(error.statusCode);
-            return response;
-          }
-     
-          const response = h.response({
-            status: 'error',
-            message: 'Maaf, terjadi kegagalan pada server kami.',
-          });
-          response.code(500);
-          return response;
-        }
       }
      
       async getPlaylistSongsHandler(request, h) {
-        try {
             this._validator.validatePlaylistSongsPayload(request.payload);
             const { id:playlistId } = request.params;
 
@@ -67,28 +45,9 @@ class PlaylistSongsHandler {
                 playlist: result,
               },
             };
-        } catch (error) {
-            if (error instanceof ClientError) {
-            const response = h.response({
-                status: 'fail',
-                message: error.message,
-            });
-            response.code(error.statusCode);
-            return response;
-            }
-     
-            // Server ERROR!
-            const response = h.response({
-            status: 'error',
-            message: 'Maaf, terjadi kegagalan pada server kami.',
-            });
-            response.code(500);
-            return response;
-        }
       }
      
       async deletePlaylistSongsHandler(request, h) {
-        try {
           this._validator.validatePlaylistSongsPayload(request.payload);
 
             const { id } = request.params;
@@ -101,24 +60,7 @@ class PlaylistSongsHandler {
             status: 'success',
             message: 'Lagu berhasil dihapus',
             };
-        } catch (error) {
-          if (error instanceof ClientError) {
-            const response = h.response({
-              status: 'fail',
-              message: error.message,
-            });
-            response.code(error.statusCode);
-            return response;
-          }
-     
-          // Server ERROR!
-          const response = h.response({
-            status: 'error',
-            message: 'Maaf, terjadi kegagalan pada server kami.',
-          });
-          response.code(500);
-          return response;
-        }
+
       }
     
   }

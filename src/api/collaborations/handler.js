@@ -1,5 +1,3 @@
-const ClientError = require('../exceptions/ClientError');
-
 class CollaborationsHandler {
     constructor(playlistSongsService, playlistService, validator) {
       this._service = playlistSongsService;
@@ -10,7 +8,6 @@ class CollaborationsHandler {
       this.deleteCollaborationsHandler = this.deleteCollaborationsHandler.bind(this);
     }
    async postCollaborationsHandler(request, h) {
-        try {
             this._validator.validateCollaborationsPayload(request.payload);
             const { playlistId, userId } = request.payload;
 
@@ -28,28 +25,9 @@ class CollaborationsHandler {
               });
               response.code(201);
               return response;
-
-        } catch (error) {
-          if (error instanceof ClientError) {
-            const response = h.response({
-              status: 'fail',
-              message: error.message,
-            });
-            response.code(error.statusCode);
-            return response;
-          }
-     
-          const response = h.response({
-            status: 'error',
-            message: 'Maaf, terjadi kegagalan pada server kami.',
-          });
-          response.code(500);
-          return response;
-        }
       }
      
       async deleteCollaborationsHandler(request, h) {
-        try {
             this._validator.validateCollaborationsPayload(request.payload);
             const { playlistId, userId } = request.payload;
 
@@ -66,24 +44,6 @@ class CollaborationsHandler {
                 },
               });
             return response;
-        } catch (error) {
-          if (error instanceof ClientError) {
-            const response = h.response({
-              status: 'fail',
-              message: error.message,
-            });
-            response.code(error.statusCode);
-            return response;
-          }
-     
-          // Server ERROR!
-          const response = h.response({
-            status: 'error',
-            message: 'Maaf, terjadi kegagalan pada server kami.',
-          });
-          response.code(500);
-          return response;
-        }
       }
     
   }

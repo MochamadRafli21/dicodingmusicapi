@@ -1,5 +1,8 @@
 const Hapi = require('@hapi/hapi');
-const Jwt = require('@hapi/jwt')
+const Jwt = require('@hapi/jwt');
+const path = require('path');
+const Inert = require('@hapi/inert');
+
 // ALBUMS
 const albums = require('./api/albums');
 const AlbumsService = require('./services/postgres/AlbumsService')
@@ -37,6 +40,10 @@ const PlaylistLogService = require('./services/postgres/PlaylistLogService');
 const _exports = require("./api/exports");
 const ExportService = require("./services/rabbitmq/ExportService");
 const ExportsSongPlaylistValidator = require('./validator/exports')
+// UPLOADS
+const uploads = require('./api/uploads');
+const UploadsService = require('./services/storage/StorageService');
+const UploadValidator = require('./validator/uploads');
 
 require('dotenv').config();
 
@@ -49,13 +56,21 @@ const init = async () => {
     const playlistLogService = new PlaylistLogService();
     const playlistService = new PlaylistService(collaborationsService);
     const playlistSongsService = new PlaylistSongsService(playlistLogService);
+    const uploadsService = new UploadsService(path.resolve(__dirname, 'api/uploads/file/images'));
 
     const server = Hapi.server({
         port: process.env.PORT,
         host: process.env.HOST,
     });
 
-    await server.register(Jwt);
+    await server.register([
+        {
+          plugin: Jwt,
+        },
+        {
+          plugin: Inert,
+        },
+      ]);
 
     server.auth.strategy('jwt', 'jwt', {
         keys: process.env.ACCESS_TOKEN_KEY,
@@ -142,22 +157,43 @@ const init = async () => {
                 playlistService: playlistService,
                 validator: ExportsSongPlaylistValidator,
             }
+        },
+        {
+            plugin: uploads,
+            options:{
+                uploadsService: uploadsService,
+                uploadsValidator: UploadValidator,
+                albumService: albumsService,
+            }
         }
     ]);
     
     server.ext('onPreResponse', (request, h) => {
-    // mendapatkan konteks response dari request
-    const { response } = request;
-    
-    if (response.source instanceof ClientError) {
-        // membuat response baru dari response toolkit sesuai kebutuhan error handling
-        const newResponse = h.response({
-        status: 'fail',
-        message: response.source.message,
-        });
-        newResponse.code(response.statusCode);
-        return newResponse;
-    }
+        // mendapatkan konteks response dari request
+        const { response } = request;
+        if (response instanceof Error) {
+     
+          // penanganan client error secara internal.
+          if (response instanceof ClientError) {
+            const newResponse = h.response({
+              status: 'fail',
+              message: response.message,
+            });
+            newResponse.code(response.statusCode);
+            return newResponse;
+          }
+          // mempertahankan penanganan client error oleh hapi secara native, seperti 404, etc.
+          if (!response.isServer) {
+            return h.continue;
+          }
+          // penanganan server error sesuai kebutuhan
+          const newResponse = h.response({
+            status: 'error',
+            message: 'terjadi kegagalan pada server kami',
+          });
+          newResponse.code(500);
+          return newResponse;
+        }
     
     
     // jika bukan ClientError, lanjutkan dengan response sebelumnya (tanpa terintervensi)
