@@ -11,6 +11,8 @@ pkgs.mkShell {
   echo "Setting up .env"
   rm .env
   touch .env
+  echo "#Cache Service" >> .env
+  echo "REDIS_SERVER=localhost" >> .env
   echo "#Message broker" >> .env
   echo "RABBITMQ_SERVER=amqp://localhost" >> .env
   echo "#JWT" >> .env

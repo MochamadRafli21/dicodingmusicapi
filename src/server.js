@@ -44,13 +44,16 @@ const ExportsSongPlaylistValidator = require('./validator/exports')
 const uploads = require('./api/uploads');
 const UploadsService = require('./services/storage/StorageService');
 const UploadValidator = require('./validator/uploads');
+// REDIS SERVICE
+const CacheService = require('./services/redis/CacheService');
 
 require('dotenv').config();
 
 const init = async () => {
+    const cacheService = new CacheService();
     const userService = new UserService();
     const authService = new AuthenticationsService();
-    const albumsService = new AlbumsService();
+    const albumsService = new AlbumsService(cacheService);
     const collaborationsService = new CollaborationsService();
     const songsService = new SongsService();
     const playlistLogService = new PlaylistLogService();
